@@ -1,5 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .models import Cat
+from .forms import FeedingForm
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 
 def home(request):
@@ -14,7 +15,26 @@ def cat_index(request):
 
 def cat_detail(request, cat_id):
     cat = Cat.objects.get(id=cat_id)
-    return render(request, 'cats/detail.html', {'cat': cat})
+    feeding_form = FeedingForm()
+    return render(request, 'cats/detail.html', {
+        'cat': cat,
+        'feeding_form': feeding_form
+        })
+
+def add_feeding(request, cat_id):
+    # grab the form data
+    form = FeedingForm(request.POST)
+    #check if the form submitted is valid
+    if form.is_valid():
+        new_feeding = form.save(commit=False)
+
+        # if the form is good, then we would create new record in our feeding table
+        new_feeding.cat_id = cat_id
+        new_feeding.save()
+
+    #if its bad, just send them back to the same page
+    #if its good , send them to the cat detail page
+    return redirect('cat-detail', cat_id=cat_id)
 
 
 # CBVs
